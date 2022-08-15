@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  api:
+    container_name: api
+    build: .
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+  db:
+    container_name: db
+    image: postgres:latest
+    ports:
+      - 5430:5432
+    environment:
+      - POSTGRES_USER=Gabriel
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=products_management
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Gabriel -d products_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - db_dev:/var/lib/postgresql/data
+
+volumes:
+  db_dev:
+    driver: local
